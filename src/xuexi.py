@@ -1,7 +1,9 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 # -*- coding:utf-8 -*-
+"""
+学习强国脚本
+"""
 import os
-import sys
 import time
 import random
 import logging
@@ -9,13 +11,17 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from config import *
+from config import USER_CONFIG, WEBSITE
 
 VIDEO_HISTORY = set()
 ARTICLE_HISTORY = set()
 
 
 class Browser:
+    """
+    使用浏览器打开学习强国网站
+    """
+
     def __init__(self, config, website):
         self.config = config
         self.website = website
@@ -23,9 +29,14 @@ class Browser:
         self.driver = self._login()
 
     def quit(self):
+        """ 退出浏览器
+        """
         self.driver.quit()
+        return None
 
     def _login(self):
+        """ 扫码登陆学习强国账号
+        """
         # chrome配置
         chrome_options = webdriver.ChromeOptions()
         chrome_options.add_argument('--log-level=3')
@@ -34,18 +45,18 @@ class Browser:
         if self.config["hide_page"]:
             chrome_options.add_argument("--headless")  # 隐藏页面
         # 执行exe文件时，chrome驱动在本层目录；执行源代码时，chrome驱动在上层目录
-        chrome_driver = os.path.join(os.getcwd(), "chromedriver\chromedriver.exe")  # chromedriver的路径
+        chrome_driver = os.path.join(os.getcwd(), r"chromedriver\chromedriver.exe")
         if not os.path.exists(chrome_driver):
-            chrome_driver = os.path.join(os.getcwd(), "..\chromedriver\chromedriver.exe")  # 执行源码时，驱动在上层目录
+            chrome_driver = os.path.join(os.getcwd(), r"..\chromedriver\chromedriver.exe")  # 执行源码时，驱动在上层目录
             if not os.path.exists(chrome_driver):
                 logger.info("无法找到chromedriver.exe驱动文件，请确保xuexi.exe文件与chromedriver文件夹在同一目录下")
-                finish(browser, 30, -1)
+                finish(None, 30, -1)
         # 实例化浏览器
         try:
             driver = webdriver.Chrome(executable_path=chrome_driver, chrome_options=chrome_options)
         except Exception as e:
             logger.info("打开chrome浏览器失败，请确保已安装谷歌浏览器chrome，并且版本为最新版 74\n{}".format(e))
-            finish(browser, 30, -1)
+            finish(None, 30, -1)
             return
         # 加载登录页面
         driver.get(self.website["url"]["login"])
@@ -53,8 +64,8 @@ class Browser:
         try:
             locator = (By.XPATH, self.xpath["login"]["login_text"])
             WebDriverWait(driver, 60, 0.5).until(EC.presence_of_element_located(locator))
-            js = "var q=document.documentElement.scrollTop=" + str(3000)
-            driver.execute_script(js)
+            js_code = "var q=document.documentElement.scrollTop=" + str(3000)
+            driver.execute_script(js_code)
         except Exception as e:
             raise e
 
@@ -76,6 +87,8 @@ class Browser:
         return driver
 
     def click(self, key1, key2, index=-100, value=None, time_sleep=0.5, wait_time=60):
+        """ 点击网页操作
+        """
         if index < -99:
             try:
                 locator = (By.XPATH, self.xpath[key1][key2].format(value))
@@ -94,11 +107,14 @@ class Browser:
         time.sleep(time_sleep)
 
     def page_down(self, lenth=1000):
-        js = "var q=document.documentElement.scrollTop=" + str(lenth)
-        self.driver.execute_script(js)
+        """ 页面下滑
+        """
+        js_code = "var q=document.documentElement.scrollTop=" + str(lenth)
+        self.driver.execute_script(js_code)
 
     def page_scroll(self, downward, wait_time):
-        # 页面滚动即是有效阅读。等待时间，页面下滑距离都是随机值
+        """ 页面随机滚动
+        """
         sleep_all_time = 0
         if downward:
             length = random.randint(50, 250)
@@ -121,11 +137,16 @@ class Browser:
         return True
 
     def get_page(self, page_name, sleep_time=2, distance=0):
+        """ 打开指定网页
+        """
         self.driver.get(self.website["url"][page_name])
         time.sleep(sleep_time)
         self.page_down(distance)
+        return True
 
     def get_text(self, key1, key2, index=-1, wait_time=60):
+        """ 获取内容
+        """
         if not wait_time:
             if index < 0:
                 return self.driver.find_element_by_xpath(self.xpath[key1][key2]).text
@@ -138,20 +159,28 @@ class Browser:
             elif index >= 0:
                 return WebDriverWait(self.driver, wait_time, 0.5).until(EC.presence_of_all_elements_located(locator))[
                     index].text
+        return None
 
     def cur_page(self):
+        """ 获取最新的窗口
+        """
         windows = self.driver.window_handles
         self.driver.switch_to.window(windows[-1])
         if self.config["hide_page"]:
             self.driver.minimize_window()
+        return None
 
     def back(self):
+        """ 关闭当前页面，返回上一个页面
+        """
         self.cur_page()
         self.driver.close()
         self.cur_page()
 
 
 def get_random_num(start, end, history):
+    """ 获取指定范围的随机数，并且在历史记录满时清空
+    """
     if len(history) == int(end - start + 1):
         logger.info("history 已满。")
         history.clear()
@@ -162,6 +191,8 @@ def get_random_num(start, end, history):
 
 
 def get_my_points(browser):
+    """ 获取积分情况
+    """
     browser.get_page("my_points")
     logger.info("今日积分获取情况")
     read_point = browser.get_text("points", "read_points")
@@ -177,6 +208,8 @@ def get_my_points(browser):
 
 
 def read_one_article(browser):
+    """ 阅读一篇文章
+    """
     # 获取一篇未读过的文章
     random_num = get_random_num(1, 20, ARTICLE_HISTORY)
     ARTICLE_HISTORY.add(random_num)
@@ -189,6 +222,8 @@ def read_one_article(browser):
 
 
 def read_article(browser, need_read_num):
+    """ 阅读文章
+    """
     logger.info("开始阅读文章，总共需要阅读{}篇".format(need_read_num))
     # 进入学习时评
     browser.get_page("main", sleep_time=5, distance=1500)
@@ -203,6 +238,8 @@ def read_article(browser, need_read_num):
 
 
 def flip_page(browser, page):
+    """ 视频页面时，随机翻页
+    """
     time.sleep(3)
     while int(browser.get_text("video", "active_btn")) < int(page):
         browser.click("video", "next_btn", index=-2)
@@ -210,6 +247,8 @@ def flip_page(browser, page):
 
 
 def watch_one_video(browser):
+    """ 观看一个视频
+    """
     # 获取未观看过的视频
     random_num = get_random_num(0, 19, VIDEO_HISTORY)
     VIDEO_HISTORY.add(random_num)
@@ -222,6 +261,8 @@ def watch_one_video(browser):
 
 
 def watch_video(browser, need_watch_num):
+    """ 观看视频
+    """
     logger.info("开始观看视频，共需观看{}部".format(need_watch_num))
     # 进入学习电视台
     browser.get_page("main", 5)
@@ -240,6 +281,8 @@ def watch_video(browser, need_watch_num):
 
 
 def auto_get_points(browser):
+    """ 自动获取积分
+    """
     # 获取当前积分情况
     my_points = get_my_points(browser)
 
@@ -256,10 +299,13 @@ def auto_get_points(browser):
     return True
 
 
-def finish(browser, remain_time=10, code=1):
+def finish(browser=None, remain_time=10, code=1):
+    """ 任务完成，退出程序
+    """
     logger.info("任务完成，程序将于{}秒后退出".format(remain_time))
     # 关闭浏览器
-    browser.quit()
+    if browser:
+        browser.quit()
     # 退出倒计时
     time_slice = remain_time // 10
     while remain_time > 0:
@@ -271,9 +317,11 @@ def finish(browser, remain_time=10, code=1):
 
 
 def create_logger():
+    """ 创建logger
+    """
     # create logger
-    logger = logging.getLogger("xuexi")
-    logger.setLevel(logging.INFO)
+    logger_instance = logging.getLogger("xuexi")
+    logger_instance.setLevel(logging.INFO)
     # create formatter
     formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
     # create console handler and set level to info
@@ -285,16 +333,22 @@ def create_logger():
     file_handler.setLevel(logging.INFO)
     file_handler.setFormatter(formatter)
     # add ch to logger
-    logger.addHandler(console_handler)
-    logger.addHandler(file_handler)
-    return logger
+    logger_instance.addHandler(console_handler)
+    logger_instance.addHandler(file_handler)
+    return logger_instance
 
 
-if __name__ == '__main__':
-    logger = create_logger()
+def main():
+    """ 主函数
+    """
     # 登录
     browser = Browser(USER_CONFIG, WEBSITE)
     # 自动获取积分
     auto_get_points(browser)
     # 退出程序
     finish(browser)
+
+
+if __name__ == '__main__':
+    logger = create_logger()
+    main()

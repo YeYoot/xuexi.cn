@@ -1,5 +1,9 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 # -*- coding:utf-8 -*-
+"""配置文件：
+    1. 用户可选配置
+    2. 网站url及xpath
+"""
 
 # 用户可选配置
 USER_CONFIG = {
