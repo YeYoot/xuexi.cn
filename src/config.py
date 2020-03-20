@@ -35,13 +35,15 @@ WEBSITE = {
         },
         "read": {
             "shiping_title": '//*[@data-data-id="shiping-title"]/div/div[2]/span',
-            "comment": '//*[@data-data-id="textListGrid"]/div/div/div/div[{}]/div/div/div/span',
+            # "comment": '//*[@data-data-id="textListGrid"]/div/div/div/div[{}]/div/div/div/span',
+            "comment": '//*[@id="root"]/div/div/section/div/div/div/div/div/section/div/div/div/div[1]/div/section/div/div/div/div/div/section/div/div/div/div/div[3]/section/div/div/div/div/div/section/div/div/div[1]/div/div[{}]',
         },
         "video": {
             "active_btn": '//*[@class="btn active"]',
             "next_btn": '//*[@class="btn"]',
             "tv": '//*[@id="root"]/div/header/div[2]/div[1]/div[2]/a[2]',
-            "videos": '//*[@id="dcd4"]/div/div/div/div/div/section/div[2]',
+            # "videos": '//*[@id="dcd4"]/div/div/div/div/div/section/div[2]',
+            "videos": '//*[@id="dcd4"]/div/div/div/div/div/div/section/div[2]',
             "one_video": '//*[@class="Pic"]',
         }
     },

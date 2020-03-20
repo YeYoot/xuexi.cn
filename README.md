@@ -1,16 +1,26 @@
 # xuexi.cn
 
-学习强国积分自动获取，模拟手动操作，没有花里胡哨，简简单单朴实无华
+学习强国积分自动获取，模拟手动操作。
 
 git地址：https://github.com/YeYoot/xuexi.cn
 
-## 使用说明
+## 使用前准备
+- 需要windows 10操作系统；
 
-- 需要windows操作系统
+- 需要安装谷歌浏览器chrome，安装最新的80版本。
 
-- 安装谷歌浏览器chrome，建议安装最新的74版本
+  ```
+  # 如果想要使用其他版本的chrome，只需要下载对应版本的chromedriver.exe文件，然后替换掉chromedriver文件夹下原本的驱动文件即可。
+  驱动文件下载地址：http://npm.taobao.org/mirrors/chromedriver
+  
+  # 查看chrome版本方式
+  chrome -> 设置 -> 关于chrome
+  ```
 
-- **双击执行xuexi.exe文件即可**
+
+## 使用方法
+
+- **双击执行xuexi.exe文件，稍等片刻后扫码登陆即可**
 
 
 

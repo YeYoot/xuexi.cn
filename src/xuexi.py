@@ -55,7 +55,7 @@ class Browser:
         try:
             driver = webdriver.Chrome(executable_path=chrome_driver, chrome_options=chrome_options)
         except Exception as e:
-            logger.info("打开chrome浏览器失败，请确保已安装谷歌浏览器chrome，并且版本为最新版 74\n{}".format(e))
+            logger.info("打开chrome浏览器失败，请确保已安装谷歌浏览器chrome，并且版本为最新版 80\n{}".format(e))
             finish(None, 30, -1)
             return
         # 加载登录页面
@@ -266,7 +266,7 @@ def watch_video(browser, need_watch_num):
     logger.info("开始观看视频，共需观看{}部".format(need_watch_num))
     # 进入学习电视台
     browser.get_page("main", 5)
-    browser.click("video", "tv", time_sleep=3)
+    browser.click("video", "tv", time_sleep=3)  # 进入学习电视台
     browser.click("video", "videos", time_sleep=3)
     # 随机翻几页
     page = random.randint(1, 11)
