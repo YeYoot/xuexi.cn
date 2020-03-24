@@ -2,6 +2,8 @@
 # -*- coding:utf-8 -*-
 """
 学习强国脚本
+作者：Yeat
+时间：2020.3.24
 """
 import os
 import time
@@ -26,7 +28,7 @@ class Browser:
         self.config = config
         self.website = website
         self.xpath = self.website["xpath"]
-        self.driver = self._login()
+        self.driver = self._init_driver()
 
     def quit(self):
         """ 退出浏览器
@@ -34,8 +36,8 @@ class Browser:
         self.driver.quit()
         return None
 
-    def _login(self):
-        """ 扫码登陆学习强国账号
+    def _init_driver(self):
+        """实例化浏览器
         """
         # chrome配置
         chrome_options = webdriver.ChromeOptions()
@@ -44,6 +46,7 @@ class Browser:
             chrome_options.add_argument('--mute-audio')  # 关闭声音
         if self.config["hide_page"]:
             chrome_options.add_argument("--headless")  # 隐藏页面
+
         # 执行exe文件时，chrome驱动在本层目录；执行源代码时，chrome驱动在上层目录
         chrome_driver = os.path.join(os.getcwd(), r"chromedriver\chromedriver.exe")
         if not os.path.exists(chrome_driver):
@@ -51,21 +54,31 @@ class Browser:
             if not os.path.exists(chrome_driver):
                 logger.info("无法找到chromedriver.exe驱动文件，请确保xuexi.exe文件与chromedriver文件夹在同一目录下")
                 finish(None, 30, -1)
+
         # 实例化浏览器
         try:
             driver = webdriver.Chrome(executable_path=chrome_driver, chrome_options=chrome_options)
         except Exception as e:
             logger.info("打开chrome浏览器失败，请确保已安装谷歌浏览器chrome，并且版本为最新版 80\n{}".format(e))
             finish(None, 30, -1)
-            return
+            return None
+
+        return driver
+
+    def login(self):
+        """ 扫码登陆学习强国账号
+        """
         # 加载登录页面
-        driver.get(self.website["url"]["login"])
+        # driver.get(self.website["url"]["login"]) # 直接加载登陆界面偶尔会显示系统维护BUG
+        self.driver.get(self.website["url"]["main"])
+        # 从主页面点击登陆
+        self.click("login", "login_btn")
         # 移动页面到最下方，显示二维码
         try:
             locator = (By.XPATH, self.xpath["login"]["login_text"])
-            WebDriverWait(driver, 60, 0.5).until(EC.presence_of_element_located(locator))
-            js_code = "var q=document.documentElement.scrollTop=" + str(3000)
-            driver.execute_script(js_code)
+            WebDriverWait(self.driver, 60, 0.5).until(EC.presence_of_element_located(locator))
+            js_code = "var q=document.documentElement.scrollTop=" + str(2500)
+            self.driver.execute_script(js_code)
         except Exception as e:
             raise e
 
@@ -73,18 +86,18 @@ class Browser:
         logger.info("请使用学习强国APP扫码登录")
         while True:
             try:
-                text = driver.find_element_by_xpath(self.xpath["login"]["success"]).text
+                text = self.driver.find_element_by_xpath(self.xpath["login"]["login_success"]).text
                 # 扫码登陆成功
-                if "学习积分" in text:
+                if "欢迎您" in text:
                     if self.config["hide_page"]:
-                        driver.minimize_window()
+                        self.driver.minimize_window()
                     break
             except:
                 pass
             finally:
                 time.sleep(1)
 
-        return driver
+        return None
 
     def click(self, key1, key2, index=-100, value=None, time_sleep=0.5, wait_time=60):
         """ 点击网页操作
@@ -343,6 +356,7 @@ def main():
     """
     # 登录
     browser = Browser(USER_CONFIG, WEBSITE)
+    browser.login()
     # 自动获取积分
     auto_get_points(browser)
     # 退出程序

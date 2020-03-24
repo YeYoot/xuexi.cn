@@ -21,8 +21,10 @@ WEBSITE = {
     },
     "xpath": {
         "login": {
+            "login_btn": '//*[@id="root"]/div/header/div[2]/div[2]/a[2]',
             "login_text": '//*[@class="ddlogintext"]',
             "success": '//*[@id="app"]/div/div[2]/div/div/div[1]/div/a[3]/div/div[2]/div[1]/span',
+            "login_success": '//*[@id="root"]/div/header/div[2]/div[2]/span/span',
         },
         "points": {
             # 文章个数够，时长肯定够，故文章以个数为准；视频个数够，时长却不一定够，故视频以时长为准
