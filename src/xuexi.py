@@ -13,7 +13,10 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.service import Service
 from config import USER_CONFIG, WEBSITE
+
 
 VIDEO_HISTORY = set()
 ARTICLE_HISTORY = set()
@@ -47,19 +50,11 @@ class Browser:
         if self.config["hide_page"]:
             chrome_options.add_argument("--headless")  # 隐藏页面
 
-        # 执行exe文件时，chrome驱动在本层目录；执行源代码时，chrome驱动在上层目录
-        chrome_driver = os.path.join(os.getcwd(), r"chromedriver\chromedriver.exe")
-        if not os.path.exists(chrome_driver):
-            chrome_driver = os.path.join(os.getcwd(), r"..\chromedriver\chromedriver.exe")  # 执行源码时，驱动在上层目录
-            if not os.path.exists(chrome_driver):
-                logger.info("无法找到chromedriver.exe驱动文件，请确保xuexi.exe文件与chromedriver文件夹在同一目录下")
-                finish(None, 30, -1)
-
         # 实例化浏览器
         try:
-            driver = webdriver.Chrome(executable_path=chrome_driver, chrome_options=chrome_options)
+            driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), chrome_options=chrome_options)
         except Exception as e:
-            logger.info("打开chrome浏览器失败，请确保已安装谷歌浏览器chrome，并且版本为最新版 80\n{}".format(e))
+            logger.info("打开chrome浏览器失败")
             finish(None, 30, -1)
             return None
 
@@ -86,7 +81,8 @@ class Browser:
         logger.info("请使用学习强国APP扫码登录")
         while True:
             try:
-                text = self.driver.find_element_by_xpath(self.xpath["login"]["login_success"]).text
+                text = self.driver.find_element(By.XPATH, self.xpath["login"]["login_success"]).text
+                # text = self.driver.find_element_by_xpath(self.xpath["login"]["login_success"]).text
                 # 扫码登陆成功
                 if "欢迎您" in text:
                     if self.config["hide_page"]:
@@ -113,6 +109,7 @@ class Browser:
             try:
                 locator = (By.XPATH, self.xpath[key1][key2].format(value))
                 WebDriverWait(self.driver, wait_time, 0.5).until(EC.presence_of_element_located(locator))
+                # self.driver.find_element(By.XPATH, self.xpath[key1][key2])[index].click()
                 self.driver.find_elements_by_xpath(self.xpath[key1][key2])[index].click()
                 self.cur_page()
             except Exception as e:
@@ -133,7 +130,7 @@ class Browser:
             length = random.randint(50, 250)
             while True:
                 self.page_down(length)
-                sleep_time = random.randint(5, 15)
+                sleep_time = random.randint(2, 4)
                 time.sleep(sleep_time)
                 sleep_all_time += sleep_time
                 length += random.randint(50, 250)
@@ -142,7 +139,7 @@ class Browser:
         else:
             while True:
                 self.page_down(random.randint(100, 600))
-                sleep_time = random.randint(5, 15)
+                sleep_time = random.randint(2, 4)
                 time.sleep(sleep_time)
                 sleep_all_time += sleep_time
                 if sleep_all_time > wait_time:
@@ -213,10 +210,10 @@ def get_my_points(browser):
     logger.info("阅读积分：{0}".format(read_point))
     logger.info("视频积分：{0}".format(video_point))
     return {
-        "read_point": int(read_point.split('/')[0][0]),
-        "read_point_all": int(read_point.split('/')[1][0]),
-        "video_point": int(video_point.split('/')[0][0]),
-        "video_point_all": int(video_point.split('/')[1][0]),
+        "read_point": int(read_point.split('/')[0][:-1]),
+        "read_point_all": int(read_point.split('/')[1][:-1]),
+        "video_point": int(video_point.split('/')[0][:-1]),
+        "video_point_all": int(video_point.split('/')[1][:-1]),
     }
 
 
@@ -239,7 +236,8 @@ def read_article(browser, need_read_num):
     """
     logger.info("开始阅读文章，总共需要阅读{}篇".format(need_read_num))
     # 进入学习时评
-    browser.get_page("main", sleep_time=5, distance=1500)
+    browser.get_page("main", sleep_time=5, distance=4000)
+    time.sleep(4)
     browser.click("read", "shiping_title")
     while need_read_num:
         logger.info("尚需阅读{0}篇文章".format(need_read_num))
